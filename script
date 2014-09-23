@@ -3,35 +3,24 @@
 set -ex
 
 openssl genpkey -out root.key -algorithm RSA
-openssl req -new -x509 -days 10 -key root.key -out root.crt -batch -subj '/CN=root/C=US/L=Fun Land/O=MyCo LLC LTD INC (d.b.a. OurCo)/OU=SSL Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
+openssl req -new -x509 -days 10 -key root.key -out root.crt -batch -subj '/CN=root/C=US/L=FunLand/O=MyCo/OU=SSL Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
 
 cat>client_config<<FOO
-[ req ]
-                prompt = no
-    distinguished_name = my_dn
-
-[ my_dn ]
-            commonName = client
-           countryName = US
-          localityName = Fun Land
-      organizationName = MyCo LLC LTD INC (d.b.a. OurCo)
-organizationalUnitName = SSL Dept.
-   stateOrProvinceName = YY
-          emailAddress = gabriel@wiccatech.com
-                  name = John Doe
-               surname = Doe
-             givenName = John
-              initials = JXD
-           dnQualifier = some
-
 [ client_auth ]
       extendedKeyUsage = clientAuth
               keyUsage = digitalSignature
 FOO
 openssl genpkey -out client.key -algorithm RSA
-openssl req -new -key client.key -out client.csr -config client_config -extensions 'client_auth'
+openssl req -new -key client.key -out client.csr -subj '/CN=client/C=US/L=FunLand/O=MyCo/OU=client Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
 openssl x509 -req -in client.csr -CA root.crt -CAkey root.key -out client.crt -set_serial 1 -extfile client_config -extensions 'client_auth'
+cat client.key client.crt > client.pem
+
+openssl genpkey -out client2.key -algorithm RSA
+openssl req -new -key client2.key -out client2.csr -subj '/CN=client2/C=US/L=FunLand/O=MyCo/OU=client Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
+openssl x509 -req -in client2.csr -CA root.crt -CAkey root.key -out client2.crt -set_serial 1 -extfile client_config -extensions 'client_auth'
+cat client2.key client2.crt > client2.pem
 
 openssl genpkey -out localhost.key -algorithm RSA
-openssl req -new -key localhost.key -out localhost.csr -subj '/CN=localhost/C=US/L=Fun Land/O=MyCo LLC LTD INC (d.b.a. OurCo)/OU=SSL Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
+openssl req -new -key localhost.key -out localhost.csr -subj '/CN=localhost/C=US/L=FunLand/O=MyCo/OU=localhost Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
 openssl x509 -req -in localhost.csr -CA root.crt -CAkey root.key -out localhost.crt -set_serial 1 
+cat localhost.key localhost.crt > localhost.pem

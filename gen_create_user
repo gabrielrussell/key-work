@@ -1,0 +1,13 @@
+#!/usr/bin/perl
+
+my $subject=`openssl x509 -in client.crt -inform PEM -subject -nameopt RFC2253 -noout`;
+$subject=~s/subject= //;
+chomp($subject);
+for my $jsfile (qw(action.js create_user.js)) {
+    open TEMPLATE, "$jsfile.template" or die "$! $jsfile.template";
+    open OUT, ">$jsfile" or die "$! $jsfile";
+    while (<TEMPLATE>) {
+        s/\[\[subject\]\]/$subject/;
+        print OUT;
+    }
+}

@@ -1,0 +1,9 @@
+db.getSiblingDB("$external").runCommand(
+         {
+           createUser: "[[subject]]",
+           roles: [
+                    { role: 'readWrite', db: 'test' },
+                    { role: 'userAdminAnyDatabase', db: 'admin' }
+           ]
+         }
+);
