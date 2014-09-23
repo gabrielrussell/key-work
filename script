@@ -24,3 +24,19 @@ openssl genpkey -out localhost.key -algorithm RSA
 openssl req -new -key localhost.key -out localhost.csr -subj '/CN=localhost/C=US/L=FunLand/O=MyCo/OU=localhost Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
 openssl x509 -req -in localhost.csr -CA root.crt -CAkey root.key -out localhost.crt -set_serial 1 
 cat localhost.key localhost.crt > localhost.pem
+
+./gen_create_user
+
+
+rm -rf ./db
+mkdir ./db
+
+pid=`( mongod --noprealloc --dbpath ./db/ --sslMode=requireSSL --sslPEMKeyFile=localhost.pem  --sslCAFile root.crt  & echo $! "not waiting for connections" ) | grep -m 2 "waiting for connections"  | head -n 1 | awk '{print $1}'`
+ps $pid
+
+mongo --ssl --sslPEMKeyFile client.pem  --sslCAFile root.crt  localhost/admin < create_user.js
+
+kill -s 2 $pid
+while [ -e /proc/$pid ] ; do sleep 1 ; done
+
+exec mongod --noprealloc --auth --dbpath ./db/ --sslMode=requireSSL --sslPEMKeyFile=localhost.pem  --sslCAFile root.crt
