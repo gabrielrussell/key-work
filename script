@@ -6,18 +6,27 @@ openssl genpkey -out root.key -algorithm RSA
 openssl req -new -x509 -days 10 -key root.key -out root.crt -batch -subj '/CN=root/C=US/L=FunLand/O=MyCo/OU=SSL Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
 
 cat>client_config<<FOO
-[ client_auth ]
       extendedKeyUsage = clientAuth
               keyUsage = digitalSignature
+   1.3.6.1.4.1.34601.1 = ASN1:SEQUENCE:roles
+[roles]
+    role1 = SEQUENCE:role1
+    role2 = SEQUENCE:role2
+[role1]
+    rolename = UTF8:testrole
+    dbname = UTF8:foo
+[role2]
+    rolename = UTF8:foorole
+    dbname = UTF8:bar
 FOO
 openssl genpkey -out client.key -algorithm RSA
 openssl req -new -key client.key -out client.csr -subj '/CN=client/C=US/L=FunLand/O=MyCo/OU=client Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
-openssl x509 -req -in client.csr -CA root.crt -CAkey root.key -out client.crt -set_serial 1 -extfile client_config -extensions 'client_auth'
+openssl x509 -req -in client.csr -CA root.crt -CAkey root.key -out client.crt -set_serial 1 -extfile client_config
 cat client.key client.crt > client.pem
 
 openssl genpkey -out client2.key -algorithm RSA
 openssl req -new -key client2.key -out client2.csr -subj '/CN=client2/C=US/L=FunLand/O=MyCo/OU=client Dept./ST=YY/emailAddress=gabriel@wiccatech.com/name=John Doe/SN=Doe/GN=John/initials=JXD/dnQualifier=some'
-openssl x509 -req -in client2.csr -CA root.crt -CAkey root.key -out client2.crt -set_serial 1 -extfile client_config -extensions 'client_auth'
+openssl x509 -req -in client2.csr -CA root.crt -CAkey root.key -out client2.crt -set_serial 1 -extfile client_config
 cat client2.key client2.crt > client2.pem
 
 openssl genpkey -out localhost.key -algorithm RSA
